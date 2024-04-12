@@ -1,0 +1,20 @@
+<html>
+<head>
+    <title>anshmain</title>
+</head>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+<noscript>Vkluchi JS pozhalasta</noscript>
+<script>
+    const socket = new WebSocket("ws://" + window.location.host + "/video")
+    socket.onmessage = function (event) {
+      event.data.arrayBuffer().then(result => {
+        const t = new Date()
+        document.getElementById('video').src = URL.createObjectURL(new Blob([pako.inflate(result).buffer]), {type: 'image/bmp'});
+        console.log(new Date() - t);
+      })
+    }
+</script>
+<body>
+<img id="video" style="width: 800px; height: 600px" src="">
+</body>
+</html>

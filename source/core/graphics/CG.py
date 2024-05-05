@@ -1,7 +1,9 @@
-from typing import Generic, NamedTuple, TypeVar
+from typing import Any, Generic, NamedTuple, TypeVar
 
-import Quartz.CoreGraphics as CG  # type: ignore
+import Quartz.CoreGraphics as QCG  # type: ignore
 from pydantic import BaseModel
+
+from source.modules.get_windows.macos.models import Window, Windows
 
 
 class ImageMetadata(BaseModel):
@@ -11,19 +13,19 @@ class ImageMetadata(BaseModel):
 
 
 class ImageCG:
-    def __init__(self, image: CG.CGImage): # type: ignore
+    def __init__(self, image: Any): # type: ignore
         self.__image = image
     
     @property
     def data(self) -> bytes:
-        return CG.CGDataProviderCopyData(CG.CGImageGetDataProvider(self.__image)) # type: ignore
+        return QCG.CGDataProviderCopyData(QCG.CGImageGetDataProvider(self.__image)) # type: ignore
     
     @property
     def metadata(self) -> ImageMetadata:
         return ImageMetadata(
-            bpr=CG.CGImageGetBytesPerRow(self.__image), # type: ignore
-            width=CG.CGImageGetWidth(self.__image), # type: ignore
-            height=CG.CGImageGetHeight(self.__image) # type: ignore
+            bpr=QCG.CGImageGetBytesPerRow(self.__image), # type: ignore
+            width=QCG.CGImageGetWidth(self.__image), # type: ignore
+            height=QCG.CGImageGetHeight(self.__image) # type: ignore
         )
 
 # Rect
@@ -55,32 +57,49 @@ class ImageOptions(
 class CG(Generic[RectInfinite, RectNull, OnScreenOnly, IncludingWindow, NullWindow, NominalResolution, BoundsIgnoreFraming]):
     @classmethod
     def create_image(cls, options: ImageOptions) -> ImageCG:
-        return ImageCG(image=CG.CGWindowListCreateImage(*options)) # type: ignore
+        return ImageCG(image=QCG.CGWindowListCreateImage(*options)) # type: ignore
     
     @classmethod
     def rect_infinite(cls) -> RectInfinite:
-        return CG.CGRectInfinite # type: ignore
+        return QCG.CGRectInfinite # type: ignore
     
     @classmethod
     def rect_null(cls) -> RectNull:
-        return CG.CGRectNull # type: ignore
+        return QCG.CGRectNull # type: ignore
     
     @classmethod
     def list_option_on_screen_only(cls) -> OnScreenOnly:
-        return CG.kCGWindowListOptionOnScreenOnly # type: ignore
+        return QCG.kCGWindowListOptionOnScreenOnly # type: ignore
     
     @classmethod
     def list_option_including_window(cls) -> IncludingWindow:
-        return CG.kCGWindowListOptionIncludingWindow # type: ignore
+        return QCG.kCGWindowListOptionIncludingWindow # type: ignore
     
     @classmethod
     def null_window_id(cls) -> NullWindow:
-        return CG.kCGNullWindowID # type: ignore
+        return QCG.kCGNullWindowID # type: ignore
     
     @classmethod
     def nominal_resolution(cls) -> NominalResolution:
-        return CG.kCGWindowImageNominalResolution # type: ignore
+        return QCG.kCGWindowImageNominalResolution # type: ignore
     
     @classmethod
     def bounds_ignore_framing(cls) -> BoundsIgnoreFraming:
-        return CG.kCGWindowImageNominalResolution # type: ignore
+        return QCG.kCGWindowImageNominalResolution # type: ignore
+    
+    @classmethod
+    def __dump_window(cls, w: Any) -> dict | None:
+        dumped = dict(w)
+        if not (dumped['kCGWindowName'] and dumped['kCGWindowNumber']):
+            return None
+        dumped['kCGWindowBounds'] = dict(dumped['kCGWindowBounds'])
+        return dumped
+
+    @classmethod
+    def windows(cls) -> Windows:
+        return Windows(
+            windows=[
+                Window.model_validate(w)
+                for w in map(cls.__dump_window, QCG.CGWindowListCopyWindowInfo(QCG.kCGWindowListOptionOnScreenOnly, QCG.kCGNullWindowID)) if w # type: ignore
+            ]
+        )

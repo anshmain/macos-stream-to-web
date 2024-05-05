@@ -5,16 +5,42 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 <noscript>Vkluchi JS pozhalasta</noscript>
 <script>
-  const socket = new WebSocket("ws://" + window.location.host + "/video")
-  socket.onmessage = function (event) {
-    event.data.arrayBuffer().then(result => {
-      document.getElementById('screen').src = URL.createObjectURL(new Blob([pako.inflate(result).buffer]), {type: 'image/jpg'});
+  function windows() {
+    fetch('/windows').then(response => {
+      const r = response.json().then(data => {
+        data.windows.forEach(element => {
+          let d = document.createElement('button');
+          d.innerText = element.name;
+          d.id = element.number;
+          d.onclick = stream;
+          document.body.appendChild(d);
+        });
+      })
     })
   }
+
+  function stream() {
+    const socket = new WebSocket("ws://" + window.location.host + `/video/${this.id}`);
+    function close() {
+      socket.close();
+      document.getElementById('screen').src = "/static/no-stream.jpeg";
+    }
+
+    let d = document.createElement('button');
+    d.innerText = 'Отключить';
+    d.onclick = close;
+    document.body.appendChild(d);
+
+    socket.onmessage = function (event) {
+      event.data.arrayBuffer().then(result => {
+        document.getElementById('screen').src = URL.createObjectURL(new Blob([pako.inflate(result).buffer]), {type: 'image/jpg'});
+      })
+    }
+  }
+  windows()
 </script>
 <body>
-<h1 id="1233"></h1>
-<img id="screen" style="width: 100%; height: 100%" src="">
-<button onclick="f()">click</button>
+<img id="screen" style="width: 1280px; height: 720px" src="/static/no-stream.jpeg">
+<h1 id="1233" style="height: 0px;"></h1>
 </body>
 </html>

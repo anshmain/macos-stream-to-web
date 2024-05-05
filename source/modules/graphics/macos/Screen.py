@@ -1,3 +1,4 @@
+from functools import cache
 from typing import Any
 
 import cv2
@@ -9,13 +10,14 @@ from source.modules.graphics.macos.models import Resolution
 
 
 class Screen(AbstractScreen):
-
+    
+    @cache
     def __build_options(self, window: int | None) -> ImageOptions:
         return ImageOptions(
             rect=CG.rect_null() if window else CG.rect_infinite(),
             list_option=CG.list_option_including_window() if window else CG.list_option_on_screen_only(),
-            window_id=window | CG.null_window_id(),
-            image_option=CG.bounds_ignore_framing() | CG.nominal_resolution() if window else CG.nominal_resolution()
+            window_id=window or CG.null_window_id(),
+            image_option=CG.bounds_ignore_framing() or CG.nominal_resolution() if window else CG.nominal_resolution()
         )
 
     def get(self, resolution: Resolution, window: int | None) -> np.ndarray[Any, np.dtype[np.uint8]]:

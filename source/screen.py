@@ -1,48 +1,33 @@
-from time import time
-import zlib
+# import zlib
 
-import cv2.data
-import numpy as np
-import Quartz.CoreGraphics as CG
+# import cv2.data
+# import numpy as np
+# import Quartz.CoreGraphics as CG
 
-
-def pako_deflate_raw(data):
-    compressed_data = zlib.compress(data, level=9)
-    return compressed_data
+# from source.core.compression.pako_deflate import pako_deflate
 
 
-def screen():
-    windows = CG.CGWindowListCopyWindowInfo(CG.kCGWindowListOptionOnScreenOnly, CG.kCGNullWindowID)
-    win_id = CG.kCGNullWindowID
-    for window in windows:
-        if window.get('kCGWindowOwnerName') == '':
-            win_id = window.get('kCGWindowNumber')
-    print(win_id)
-    # screen_only = CG.kCGWindowListOptionOnScreenOnly
-    # null_window = CG.kCGNullWindowID
-    # nominal_resolution = CG.kCGWindowImageNominalResolution
-    # kCGWindowListOptionIncludingWindow
-    # kCGWindowImageBoundsIgnoreFraming
-    while True:
-        t = time()
-        frame = CG.CGWindowListCreateImage(
-            CG.CGRectNull,
-            CG.kCGWindowListOptionIncludingWindow,
-            1358,
-            CG.kCGWindowImageBoundsIgnoreFraming | CG.kCGWindowImageNominalResolution,
-        )
+# def list_windows():
+#     return CG.CGWindowListCopyWindowInfo(CG.kCGWindowListOptionOnScreenOnly, CG.kCGNullWindowID)
 
-        bpr = CG.CGImageGetBytesPerRow(frame)
-        width = CG.CGImageGetWidth(frame)
-        height = CG.CGImageGetHeight(frame)
+# def shot(options):
+    
 
-        np_raw_data = np.frombuffer(CG.CGDataProviderCopyData(CG.CGImageGetDataProvider(frame)), dtype=np.uint8)
-        np_data = np.lib.stride_tricks.as_strided(np_raw_data,
-                                                  shape=(height, width, 3),
-                                                  strides=(bpr, 4, 1),
-                                                  writeable=False)
-
-        resized = cv2.resize(np_data, (1920, 1080))
-        _, buffer = cv2.imencode('.jpg', resized)
-        yield pako_deflate_raw(buffer.tobytes())
-        print(time() - t)
+# def screen(window: int | None = None):
+#     if window is None:
+#         options = (
+#             CG.CGRectInfinite,
+#             CG.kCGWindowListOptionOnScreenOnly,
+#             CG.kCGNullWindowID,
+#             CG.kCGWindowImageNominalResolution
+#         )
+#     else:
+#         options = (
+#             CG.CGRectNull,
+#             CG.kCGWindowListOptionIncludingWindow,
+#             window,
+#             CG.kCGWindowImageBoundsIgnoreFraming | CG.kCGWindowImageNominalResolution
+#         )
+#     while True:
+#         buffer = shot(options)
+#         yield pako_deflate(buffer.tobytes())

@@ -13,6 +13,10 @@ templates = Jinja2Templates(directory="static")
 async def root(request: Request):
     return templates.TemplateResponse("stream.html", {"request": request})
 
+@app.get("/windows")
+async def windows(request: Request):
+    return 
+
 @app.websocket("/video")
 async def video(websocket: WebSocket):
     await websocket.accept()
